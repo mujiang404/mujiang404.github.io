@@ -1,84 +1,136 @@
 ---
-import { Image } from 'astro:assets';
 import type { CollectionEntry } from 'astro:content';
-import BaseHead from '../components/BaseHead.astro';
-import Footer from '../components/Footer.astro';
-import FormattedDate from '../components/FormattedDate.astro';
-import Header from '../components/Header.astro';
+import { Image } from 'astro:assets';
+import MujiangStar from '../components/MujiangStar.astro';
+import { SITE_TITLE } from '../consts';
 
+// Compatible with the official Astro blog starter's Markdown/MDX layout props.
 type Props = CollectionEntry<'blog'>['data'];
-
 const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
+const dateText = (date: Date) => new Intl.DateTimeFormat('zh-CN', {
+  year: 'numeric', month: 'long', day: 'numeric'
+}).format(date);
+const navItems = [
+  { href: '/', label: '首页' },
+  { href: '/blog/', label: '文章' },
+  { href: '/shuoshuo/', label: '说说' },
+  { href: '/about/', label: '关于' },
+];
 ---
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description ?? title} />
+    <meta name="theme-color" content="#211c35" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>{title} · {SITE_TITLE}</title>
+  </head>
+  <body>
+    <section class="article-banner" aria-label="文章封面">
+    <header class="site-header">
+      <nav class="nav-wrap" aria-label="主导航">
+        <a class="brand" href="/" aria-label="暮江，返回首页">
+          <MujiangStar variant="long" size={32} />
+          <span>暮江</span>
+        </a>
+        <div class="nav-links">
+          {navItems.map((item) => (
+            <a href={item.href} aria-current={item.href === '/blog/' ? 'page' : undefined}>{item.label}</a>
+          ))}
+          <a href="https://github.com/mujiang404" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
+        </div>
+      </nav>
+    </header>
+    <div class="banner-heading">
+      <a class="back banner-back" href="/blog/">← 返回文章</a>
+      <time datetime={pubDate.toISOString()}>{dateText(pubDate)}</time>
+      <h1>{title}</h1>
+      {description && <p class="description">{description}</p>}
+      {updatedDate && <p class="updated">最后更新于 {dateText(updatedDate)}</p>}
+    </div>
+    </section>
 
-<html lang="en">
-	<head>
-		<BaseHead title={title} description={description} />
-		<style>
-			main {
-				width: calc(100% - 2em);
-				max-width: 100%;
-				margin: 0;
-			}
-			.hero-image {
-				width: 100%;
-			}
-			.hero-image img {
-				display: block;
-				margin: 0 auto;
-				border-radius: 12px;
-				box-shadow: var(--box-shadow);
-			}
-			.prose {
-				width: 720px;
-				max-width: calc(100% - 2em);
-				margin: auto;
-				padding: 1em;
-				color: rgb(var(--gray-dark));
-			}
-			.title {
-				margin-bottom: 1em;
-				padding: 1em 0;
-				text-align: center;
-				line-height: 1;
-			}
-			.title h1 {
-				margin: 0 0 0.5em 0;
-			}
-			.date {
-				margin-bottom: 0.5em;
-				color: rgb(var(--gray));
-			}
-			.last-updated-on {
-				font-style: italic;
-			}
-		</style>
-	</head>
+    <main>
+      <article class="post">
+        {heroImage && <div class="hero-image"><Image src={heroImage} alt={title} widths={[720, 1100, 1500]} sizes="(max-width: 850px) 100vw, 850px" /></div>}
+        <div class="prose"><slot /></div>
+        <div class="end-mark" aria-hidden="true"><MujiangStar variant="long" size={22} /></div>
+        <a class="back bottom" href="/blog/">← 返回所有文章</a>
+      </article>
+    </main>
 
-	<body>
-		<Header />
-		<main>
-			<article>
-				<div class="hero-image">
-					{heroImage && <Image width={1020} height={510} src={heroImage} alt="" />}
-				</div>
-				<div class="prose">
-					<div class="title">
-						<div class="date">
-							<FormattedDate date={pubDate} />
-							{updatedDate && (
-								<div class="last-updated-on">
-									Last updated on <FormattedDate date={updatedDate} />
-								</div>
-							)}
-						</div>
-						<h1>{title}</h1>
-						<hr />
-					</div>
-					<slot />
-				</div>
-			</article>
-		</main>
-		<Footer />
-	</body>
+    <footer class="site-footer"><MujiangStar variant="long" size={16} /> 暮江 · {new Date().getFullYear()}</footer>
+  </body>
 </html>
+
+<style is:global>
+  :root { color-scheme: light; }
+  *, *::before, *::after { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: #faf9fc; color: #28243a; font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif; }
+  a { color: inherit; }
+  .article-banner {
+    height: 58svh; min-height: 340px; max-height: 580px;
+    display: flex; flex-direction: column; color: #fff;
+    background-color: #201c35;
+    background-image: linear-gradient(180deg, rgba(20,16,38,.37), rgba(18,17,36,.32) 50%, rgba(18,17,36,.45)), url('/blog-bg.jpg');
+    background-size: cover; background-position: center center;
+  }
+  .site-header { width: 100%; }
+  .nav-wrap {
+    width: calc(100% - 80px); max-width: 1180px; min-height: 94px;
+    margin: auto; display: flex; align-items: center;
+    justify-content: space-between; gap: 24px;
+    border-bottom: 1px solid rgba(255,255,255,.2);
+  }
+  .brand { color: #fff; text-decoration: none; display: inline-flex; align-items: center; gap: 9px; font-size: 1.45rem; font-weight: 760; white-space: nowrap; }
+  .nav-links { display: flex; align-items: center; flex-wrap: wrap; gap: clamp(16px, 3vw, 44px); }
+  .nav-links a { color: rgba(255,255,255,.85); font-size: .93rem; text-decoration: none; transition: color .2s; }
+  .nav-links a:hover, .nav-links a[aria-current='page'] { color: #fff; }
+  .banner-heading {
+    flex: 1; width: min(980px, calc(100% - 40px)); margin: 0 auto;
+    padding: 14px 0 26px; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; text-align: center;
+    text-shadow: 0 2px 14px rgba(0,0,0,.35);
+  }
+  .back { display: inline-block; color: #8262c9; font-size: .9rem; text-decoration: none; border-bottom: 1px solid #d9c8ef; padding-bottom: 5px; }
+  .banner-back { color: rgba(255,255,255,.91); border-color: rgba(255,255,255,.45); margin-bottom: 18px; }
+  .banner-heading time { display: block; color: #efe5ff; font-size: .9rem; }
+  .banner-heading h1 {
+    margin: 12px 0 13px; font-size: clamp(2rem, 4vw, 3.6rem);
+    line-height: 1.25; letter-spacing: -.03em; overflow-wrap: anywhere;
+  }
+  .description { font-size: clamp(.95rem, 1.3vw, 1.15rem); color: #f5f0fc; line-height: 1.7; margin: 0; }
+  .updated { font-size: .83rem; color: #e7d9fa; margin-top: 12px; }
+  .post { width: min(850px, calc(100% - 40px)); margin: 0 auto; padding: 66px 0 90px; }
+  .hero-image { margin: 0 auto 36px; overflow: hidden; border-radius: 16px; }
+  .hero-image img { display: block; width: 100%; height: auto; }
+  .prose { font-size: 1.055rem; line-height: 1.95; overflow-wrap: anywhere; }
+  .prose h1, .prose h2, .prose h3, .prose h4 { line-height: 1.4; margin: 1.8em 0 .8em; letter-spacing: -.02em; }
+  .prose h1 { font-size: 2rem; } .prose h2 { font-size: 1.65rem; padding-bottom: .35em; border-bottom: 1px solid #e6def0; } .prose h3 { font-size: 1.32rem; }
+  .prose p, .prose ul, .prose ol, .prose blockquote { margin: 1.15em 0; }
+  .prose a { color: #8055c1; text-underline-offset: 3px; }
+  .prose a:hover { color: #57349a; }
+  .prose img { max-width: 100%; height: auto; border-radius: 10px; }
+  .prose blockquote { border-left: 3px solid #b996f5; padding: 9px 18px; margin-left: 0; color: #6d637f; background: #f0eafb; border-radius: 0 8px 8px 0; }
+  .prose :not(pre) > code { color: #8050b4; background: #eee7f7; border-radius: 4px; padding: .15em .35em; font-size: .9em; }
+  .prose pre { padding: 20px; overflow-x: auto; border-radius: 12px; line-height: 1.6; }
+  .prose pre code { background: transparent; }
+  .prose table { display: block; overflow-x: auto; border-collapse: collapse; max-width: 100%; }
+  .prose th, .prose td { border: 1px solid #e4deed; padding: 8px 12px; }
+  .prose hr { border: 0; border-top: 1px solid #e4deed; margin: 2em 0; }
+  .end-mark { display: flex; justify-content: center; margin: 55px 0 22px; }
+  .back.bottom { display: table; margin: auto; }
+  .site-footer { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 26px; color: #877a9b; font-size: .9rem; border-top: 1px solid #ece6f4; }
+  @media (max-width: 680px) {
+    .nav-wrap { width: calc(100% - 32px); padding: 14px 0; min-height: 78px; flex-wrap: wrap; gap: 12px; }
+    .nav-links { gap: 14px; } .nav-links a { font-size: .8rem; }
+    .post { width: calc(100% - 32px); padding-top: 38px; }
+    .article-banner { height: 48svh; min-height: 340px; }
+    .banner-heading { padding-bottom: 22px; }
+    .banner-heading h1 { font-size: clamp(1.8rem, 7.5vw, 2.7rem); }
+    .prose { font-size: 1rem; }
+  }
+</style>

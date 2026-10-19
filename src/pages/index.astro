@@ -1,59 +1,198 @@
 ---
-import BaseHead from '../components/BaseHead.astro';
-import Footer from '../components/Footer.astro';
-import Header from '../components/Header.astro';
-import { SITE_DESCRIPTION, SITE_TITLE } from '../consts';
----
+// 暮江 · 远空：星星标志 + 单段首屏介绍 + 阅读文章入口
+// 基于 Astro 官方 blog starter 的 content collection
+import { getCollection } from 'astro:content';
+import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
+import MujiangStar from '../components/MujiangStar.astro';
+import '../styles/mujiang.css';
 
+const posts = (await getCollection('blog'))
+  .filter((post) => !post.data.draft)
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+
+const formatDate = (value: Date) => new Intl.DateTimeFormat('zh-CN', {
+  year: 'numeric', month: '2-digit', day: '2-digit',
+}).format(value);
+
+// 在这里修改首页文字
+const nickname = '暮江';
+const subheading = "mujiang404's blog";
+---
 <!doctype html>
-<html lang="en">
-	<head>
-		<BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
-	</head>
-	<body>
-		<Header />
-		<main>
-			<h1>🧑‍🚀 Hello, Astronaut!</h1>
-			<p>
-				Welcome to the official <a href="https://astro.build/">Astro</a> blog starter template. This
-				template serves as a lightweight, minimally-styled starting point for anyone looking to
-				build a personal website, blog, or portfolio with Astro.
-			</p>
-			<p>
-				This template comes with a few integrations already configured in your{' '}
-				<code>astro.config.mjs</code> file. You can customize your setup with{' '}
-				<a href="https://astro.build/integrations">Astro Integrations</a> to add tools like
-				Tailwind, React, or Vue to your project.
-			</p>
-			<p>Here are a few ideas on how to get started with the template:</p>
-			<ul>
-				<li>
-					Edit this page in <code>src/pages/index.astro</code>
-				</li>
-				<li>
-					Edit the site header items in <code>src/components/Header.astro</code>
-				</li>
-				<li>
-					Add your name to the footer in <code>src/components/Footer.astro</code>
-				</li>
-				<li>
-					Check out the included blog posts in <code>src/content/blog/</code>
-				</li>
-				<li>
-					Customize the blog post page layout in <code>src/layouts/BlogPost.astro</code>
-				</li>
-			</ul>
-			<p>
-				Have fun! If you get stuck, remember to{' '}
-				<a href="https://docs.astro.build/">read the docs</a> or{' '}
-				<a href="https://astro.build/chat">join us on Discord</a> to ask questions.
-			</p>
-			<p>
-				Looking for a blog template with a bit more personality? Check out{' '}
-				<a href="https://github.com/Charca/astro-blog-template">astro-blog-template</a> by{' '}
-				<a href="https://twitter.com/Charca">Maxi Ferreira</a>.
-			</p>
-		</main>
-		<Footer />
-	</body>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={SITE_DESCRIPTION} />
+    <meta name="theme-color" content="#211d36" />
+    <title>{SITE_TITLE}</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  </head>
+  <body>
+    <a class="skip" href="#journal">跳到文章列表</a>
+    <header class="masthead" id="top">
+      <nav class="navigation wrap" aria-label="主导航">
+        <a href="/" class="logo"><MujiangStar variant="long" size={32} className="brand-star" /> {nickname}</a>
+        <div class="nav-links">
+          <a href="/" aria-current="page">首页</a>
+          <a href="/blog/">文章</a>
+          <a href="/shuoshuo/">说说</a>
+          <a href="/about/">关于</a>
+          <a href="https://github.com/mujiang404" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
+        </div>
+      </nav>
+      <section class="hero wrap" aria-label="网站介绍">
+        <p class="hero-intro">{subheading}</p>
+        <a href="#journal" class="hero-primary">阅读文章 <span aria-hidden="true">↗</span></a>
+      </section>
+    </header>
+
+    <main>
+      <section class="about-strip wrap" aria-label="本站简介">
+        <MujiangStar variant="outline" size={39} />
+        <p>你好，我是 <strong>{nickname}</strong>。在这里记录学习中的困惑、解决问题的过程，也记录那些不必有答案的日常。</p>
+        <a href="/about/">更多关于我 ↗</a>
+      </section>
+
+      <section class="journal wrap" id="journal" aria-labelledby="journal-heading">
+        <div class="section-heading">
+          <div>
+            <span class="eyebrow"><MujiangStar variant="eight" size={15} /> 文章 / {posts.length}</span>
+            <h2 id="journal-heading">最近文章</h2>
+          </div>
+          <a class="more" href="/blog/">所有文章 <span aria-hidden="true">↗</span></a>
+        </div>
+        <label class="search" for="search-posts">
+          <svg aria-hidden="true" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="10.5" cy="10.5" r="6.5" /><path d="m16 16 5 5"/></svg>
+          <input id="search-posts" type="search" placeholder="搜索文章…" autocomplete="off" />
+        </label>
+        <div class="posts" id="posts">
+          {posts.length === 0 ? (
+            <div class="no-posts">第一篇文章正在路上。可以先到 <code>src/content/blog/</code> 创建 Markdown 文件。</div>
+          ) : posts.map((post, index) => (
+            <article class="post" data-search={`${post.data.title} ${post.data.description ?? ''}`.toLocaleLowerCase()}>
+              <div class="post-number"><MujiangStar variant={index % 2 === 0 ? "outline" : "five"} size={19} /></div>
+              <div class="post-content">
+                <time datetime={post.data.pubDate.toISOString()}>{formatDate(post.data.pubDate)}</time>
+                <h3><a href={`/blog/${post.id}/`}>{post.data.title}</a></h3>
+                <p>{post.data.description || '点击阅读这篇文章。'}</p>
+                <a class="read-link" href={`/blog/${post.id}/`}>继续阅读 <span aria-hidden="true">↗</span></a>
+              </div>
+              <a class="post-arrow" href={`/blog/${post.id}/`} aria-label={`阅读：${post.data.title}`}>↗</a>
+            </article>
+          ))}
+        </div>
+        <p class="no-results" id="no-results" hidden>没有找到匹配的文章，换个关键词试试吧。</p>
+      </section>
+    </main>
+    <footer class="footer">
+      <div class="wrap footer-inner"><span class="footer-sign"><MujiangStar variant="five" size={16} /> {nickname} · {new Date().getFullYear()}</span><span>Made with Astro / Hosted on GitHub Pages</span><a href="#top">回到顶部 ↑</a></div>
+    </footer>
+    <script>
+      const input = document.querySelector<HTMLInputElement>('#search-posts');
+      const cards = [...document.querySelectorAll<HTMLElement>('.post')];
+      const empty = document.querySelector<HTMLElement>('#no-results');
+      input?.addEventListener('input', () => {
+        const keyword = input.value.trim().toLocaleLowerCase();
+        let shown = 0;
+        for (const card of cards) {
+          const match = (card.dataset.search || '').includes(keyword);
+          card.hidden = !match;
+          if (match) shown += 1;
+        }
+        if (empty) empty.hidden = shown !== 0 || cards.length === 0;
+      });
+    </script>
+  </body>
 </html>
+
+<style is:global>
+  :root { color-scheme: light; font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif; scroll-behavior: smooth; }
+  * { box-sizing: border-box; }
+  html { scroll-padding-top: 28px; }
+  body { margin: 0; color: #28243a; background: #faf9fe; }
+  a { color: inherit; text-decoration: none; }
+  button, input { font: inherit; }
+  .wrap { max-width: 1180px; margin-inline: auto; width: calc(100% - 80px); }
+  .skip { position: fixed; z-index: 20; left: 12px; top: -60px; padding: 12px; background: white; }
+  .skip:focus { top: 12px; }
+  .masthead { min-height: 92svh; min-height: 92vh; position: relative; overflow: hidden; color: #fff; background: #2b2445; isolation: isolate; display: flex; flex-direction: column; }
+  .masthead::before { content: ''; position: absolute; z-index: -2; inset: 0; background-image: url('/banner.jpg'); background-size: cover; background-position: center 46%; transform: scale(1.015); }
+  .masthead::after { content: ''; position: absolute; z-index: -1; inset: 0; background: linear-gradient(90deg, rgba(12,30,43,.75) 0%, rgba(17,37,51,.48) 46%, rgba(13,26,34,.07) 100%), linear-gradient(0deg, rgba(15,29,40,.66), transparent 26%, rgba(9,26,39,.22)); }
+  .navigation { min-height: 94px; display: flex; align-items: center; justify-content: space-between; gap: 24px; border-bottom: 1px solid #ffffff33; }
+  .logo { font-weight: 760; font-size: 1.45rem; letter-spacing: .02em; white-space: nowrap; }
+  .logo-symbol { color: #c9a7ff; margin-right: 7px; font-size: 1.3em; vertical-align: -0.04em; }
+  .logo-dot, .heading-period { color: #9b78dd; }
+  .nav-links { display: flex; flex-wrap: wrap; gap: clamp(16px, 3vw, 44px); align-items: center; }
+  .nav-links a { color: #f5f5f4d9; font-size: .93rem; transition: color .15s; }
+  .nav-links a:hover, .nav-links [aria-current] { color: #fff; }
+  .hero { flex: 1; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 34px; padding-block: 100px 130px; }
+  .hero-intro { max-width: 780px; color: rgba(255,255,255,.84); font-size: clamp(1.55rem, 3.1vw, 3rem); line-height: 1.55; font-weight: 700; letter-spacing: -.025em; text-shadow: 0 3px 30px rgba(9, 26, 39, .38); margin: 0; }
+  .hero-primary { background: rgba(238,230,255,.55); color: #221a38; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,.42); padding: 18px 25px; border-radius: 3px; font-weight: 650; display: inline-flex; gap: 45px; align-items: center; transition: background .2s, transform .2s; }
+  .hero-primary:hover { background: rgba(238,230,255,.78); transform: translateY(-2px); }
+  .hero-primary:focus-visible { outline: 3px solid #c6a7ff; outline-offset: 4px; }
+  .about-strip { display: grid; grid-template-columns: 70px 1fr auto; gap: 26px; align-items: center; padding-block: 58px; border-bottom: 1px solid #e7e0f2; }
+  .strip-star { font-size: 2.4rem; color: #ad8ee8; }
+  .about-strip p { margin: 0; font-size: 1.09rem; line-height: 1.85; max-width: 700px; }
+  .about-strip a { white-space: nowrap; font-size: .9rem; color: #8262c9; }
+  .journal { padding-block: 105px 115px; }
+  .section-heading { display: flex; justify-content: space-between; align-items: end; gap: 25px; margin-bottom: 42px; }
+  .eyebrow { font-size: .72rem; letter-spacing: .19em; color: #8465c6; font-weight: 700; }
+  .section-heading h2 { margin: 10px 0 7px; font-size: clamp(2.2rem, 4vw, 3.7rem); letter-spacing: -.055em; }
+  .section-heading p { color: #7d778d; margin: 0; line-height: 1.8; }
+  .more { border-bottom: 1px solid #beaedd; padding-bottom: 9px; white-space: nowrap; font-size: .93rem; }
+  .search { background: white; border: 1px solid #e7e0f2; height: 56px; display: flex; gap: 12px; align-items: center; padding: 0 19px; margin-bottom: 23px; max-width: 490px; border-radius: 5px; }
+  .search span { font-size: 1.65rem; color: #89929a; }
+  .search input { border: 0; outline: none; min-width: 0; width: 100%; background: transparent; color: #28243a; }
+  .search:focus-within { border-color: #9876d8; box-shadow: 0 0 0 3px #9876d818; }
+  .post { display: grid; grid-template-columns: 150px 1fr 54px; gap: 22px; align-items: start; padding: 36px 6px; border-top: 1px solid #e7e0f2; }
+  .post:last-child { border-bottom: 1px solid #e7e0f2; }
+  .post-number { color: #9670dd; font-size: 1.3rem; font-weight: 700; letter-spacing: -.02em; padding-top: 4px; }
+  .post-number span { color: #a5a6a2; font-size: .66rem; letter-spacing: .13em; }
+  .post-content time { font-size: .8rem; color: #83898a; }
+  .post-content h3 { font-size: clamp(1.45rem, 2.3vw, 2rem); letter-spacing: -.035em; line-height: 1.42; margin: 10px 0; }
+  .post-content h3 a:hover { color: #8262c9; }
+  .post-content p { margin: 0; color: #6d687d; line-height: 1.8; max-width: 710px; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+  .read-link { display: inline-block; margin-top: 18px; color: #8262c9; font-size: .88rem; font-weight: 650; }
+  .post-arrow { justify-self: end; width: 44px; height: 44px; border: 1px solid #e3d9f1; border-radius: 50%; display: grid; place-items: center; font-size: 1.2rem; }
+  .post-arrow:hover { color: white; background: #8262c9; border-color: #8262c9; }
+  .post[hidden], .no-results[hidden] { display: none !important; }
+  .no-posts, .no-results { padding: 50px 20px; color: #788084; text-align: center; }
+  .footer { background: #241d39; color: #e9dfff; }
+  .footer-inner { display: flex; justify-content: space-between; align-items: center; gap: 20px; padding-block: 37px; font-size: .8rem; }
+  @media (max-width: 760px) {
+    .wrap { width: calc(100% - 38px); }
+    .masthead { min-height: 88svh; }
+    .navigation { min-height: 80px; flex-wrap: wrap; padding-block: 16px; }
+    .nav-links { gap: 16px; }
+    .nav-links a { font-size: .8rem; }
+    .hero { padding-block: 80px; }
+    .hero-intro { font-size: clamp(1.55rem, 5.8vw, 2.5rem); }
+    .about-strip { grid-template-columns: 1fr; gap: 15px; padding-block: 35px; }
+    .strip-star { font-size: 2rem; }
+    .journal { padding-block: 70px; }
+    .section-heading { align-items: start; flex-direction: column; }
+    .post { grid-template-columns: 1fr 42px; gap: 8px; }
+    .post-number { grid-column: 1 / -1; }
+    .post-content { grid-column: 1; }
+    .post-arrow { grid-column: 2; grid-row: 2; }
+    .footer-inner { flex-direction: column; align-items: start; }
+  }
+  @media (prefers-reduced-motion: reduce) { :root { scroll-behavior: auto; } }
+</style>
+
+<style>
+  .eyebrow { display:inline-flex; align-items:center; gap:9px; color:#8569ca; letter-spacing:.08em; }
+  .section-heading { margin-bottom:26px; }
+  .section-heading h2 { font-size:clamp(2rem,3vw,2.85rem); letter-spacing:-.035em; font-weight:760; margin:8px 0 0; }
+  .search { max-width:390px; background:#fff; border-radius:12px; height:48px; margin-bottom:18px; }
+  .search svg { flex:0 0 auto; color:#9a88bb; }
+  .journal { padding-block:80px 100px; }
+  .post { grid-template-columns:42px 1fr 44px; gap:19px; padding:27px 4px; }
+  .post-number { padding-top:3px; }
+  .post-content h3 { font-size:clamp(1.25rem,2vw,1.75rem); }
+  .footer-sign { display:inline-flex; align-items:center; gap:7px; }
+  .logo { display:inline-flex; align-items:center; gap:9px; }
+  .masthead::after { background:linear-gradient(90deg,rgba(22,15,42,.80),rgba(31,26,61,.34) 65%,rgba(17,19,43,.14)),linear-gradient(0deg,rgba(24,17,46,.63),transparent 35%); }
+  @media(max-width:760px){ .post{ grid-template-columns:28px 1fr; gap:12px; } .post-number{grid-column:1;grid-row:1} .post-content{grid-column:2;grid-row:1} .post-arrow{grid-column:2;grid-row:2;justify-self:start;} }
+</style>

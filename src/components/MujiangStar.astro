@@ -1,0 +1,16 @@
+---
+// 02 八角、04 线条、07 长芒、10 空心：与用户选择对应
+interface Props {
+  variant?: 'eight' | 'outline' | 'long' | 'five' | 'outline-five';
+  size?: number;
+  className?: string;
+}
+const { variant = 'long', size = 24, className = '' } = Astro.props;
+---
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width={size} height={size} class={className} fill="none" aria-hidden="true" focusable="false">
+  {variant === 'eight' && <path d="M24 3 27.2 17.2 39 9 30.8 20.8 45 24 30.8 27.2 39 39 27.2 30.8 24 45 20.8 30.8 9 39 17.2 27.2 3 24 17.2 20.8 9 9 20.8 17.2Z" fill="#c3a0fb" />}
+  {variant === 'outline' && <path d="M24 4 29.6 18.4 44 24 29.6 29.6 24 44 18.4 29.6 4 24 18.4 18.4Z" stroke="#bb98f6" stroke-width="3" stroke-linejoin="round" />}
+  {variant === 'long' && <path d="M24 2 C27.3 18.2 29.8 20.7 46 24 C29.8 27.3 27.3 29.8 24 46 C20.7 29.8 18.2 27.3 2 24 C18.2 20.7 20.7 18.2 24 2Z" fill="#b996f5" />}
+  {variant === 'outline-five' && <path d="M24 4.5 30.1 17l13.8 2.1-9.95 9.7 2.35 13.7L24 36.05l-12.3 6.45 2.35-13.7-9.95-9.7L17.9 17Z" stroke="#c3a0fb" stroke-width="3.1" stroke-linejoin="round" fill="none" />}
+  {variant === 'five' && <path d="m24 4 6.3 13 14.3 2.1-10.3 10 2.4 14.2L24 36.6 11.3 43.3l2.4-14.2-10.3-10L17.7 17Z" stroke="#b996f5" stroke-width="3" stroke-linejoin="round" />}
+</svg>

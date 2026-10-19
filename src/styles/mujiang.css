@@ -1,0 +1,7 @@
+/* 共享的淡紫色主题变量；页面内部样式可直接使用 */
+:root {
+  --mujiang-accent: #b996f5;
+  --mujiang-accent-strong: #8262c9;
+  --mujiang-background: #faf9fe;
+  --mujiang-ink: #28243a;
+}

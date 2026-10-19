@@ -1,112 +1,40 @@
 ---
-import { Image } from 'astro:assets';
 import { getCollection } from 'astro:content';
-import BaseHead from '../../components/BaseHead.astro';
-import Footer from '../../components/Footer.astro';
-import FormattedDate from '../../components/FormattedDate.astro';
-import Header from '../../components/Header.astro';
-import { SITE_DESCRIPTION, SITE_TITLE } from '../../consts';
-
-const posts = (await getCollection('blog')).sort(
-	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
-);
+import { SITE_TITLE } from '../../consts';
+import InnerHero from '../../components/InnerHero.astro';
+import MujiangStar from '../../components/MujiangStar.astro';
+import '../../styles/inner-pages.css';
+const posts = (await getCollection('blog')).filter(post => !post.data.draft).sort((a,b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+const formatDate = (d: Date) => new Intl.DateTimeFormat('zh-CN', {year:'numeric',month:'2-digit',day:'2-digit'}).format(d);
 ---
-
 <!doctype html>
-<html lang="en">
-	<head>
-		<BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
-		<style>
-			main {
-				width: 960px;
-			}
-			ul {
-				display: flex;
-				flex-wrap: wrap;
-				gap: 2rem;
-				list-style-type: none;
-				margin: 0;
-				padding: 0;
-			}
-			ul li {
-				width: calc(50% - 1rem);
-			}
-			ul li * {
-				text-decoration: none;
-				transition: 0.2s ease;
-			}
-			ul li:first-child {
-				width: 100%;
-				margin-bottom: 1rem;
-				text-align: center;
-			}
-			ul li:first-child img {
-				width: 100%;
-			}
-			ul li:first-child .title {
-				font-size: 2.369rem;
-			}
-			ul li img {
-				margin-bottom: 0.5rem;
-				border-radius: 12px;
-			}
-			ul li a {
-				display: block;
-			}
-			.title {
-				margin: 0;
-				color: rgb(var(--black));
-				line-height: 1;
-			}
-			.date {
-				margin: 0;
-				color: rgb(var(--gray));
-			}
-			ul li a:hover h4,
-			ul li a:hover .date {
-				color: rgb(var(--accent));
-			}
-			ul a:hover img {
-				box-shadow: var(--box-shadow);
-			}
-			@media (max-width: 720px) {
-				ul {
-					gap: 0.5em;
-				}
-				ul li {
-					width: 100%;
-					text-align: center;
-				}
-				ul li:first-child {
-					margin-bottom: 0;
-				}
-				ul li:first-child .title {
-					font-size: 1.563em;
-				}
-			}
-		</style>
-	</head>
-	<body>
-		<Header />
-		<main>
-			<section>
-				<ul>
-					{posts.map((post) => (
-						<li>
-							<a href={`/blog/${post.id}/`}>
-								{post.data.heroImage && (
-									<Image width={720} height={360} src={post.data.heroImage} alt="" />
-								)}
-								<h4 class="title">{post.data.title}</h4>
-								<p class="date">
-									<FormattedDate date={post.data.pubDate} />
-								</p>
-							</a>
-						</li>
-					))}
-				</ul>
-			</section>
-		</main>
-		<Footer />
-	</body>
-</html>
+<html lang="zh-CN"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><meta name="description" content="暮江的文章记录"/><link rel="icon" href="/favicon.svg" type="image/svg+xml"/><title>文章 · {SITE_TITLE}</title></head>
+<body class="inner-page">
+<InnerHero image="/blog-bg.jpg" title="文章" subtitle="================" active="blog" />
+<main class="page-main" id="content">
+  <div class="intro-row"><h2 class="section-heading">所有文章 <span>{String(posts.length).padStart(2,'0')}</span></h2><p></p></div>
+  <label class="search" for="post-search"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg><input id="post-search" type="search" placeholder="搜索文章标题或摘要…" autocomplete="off" /></label>
+  <p id="match-count" class="count" aria-live="polite">共 {posts.length} 篇文章</p>
+  <div class="entries">
+    {posts.map((post,index)=><article class="entry" data-search={`${post.data.title} ${post.data.description ?? ''}`.toLocaleLowerCase()}>
+      <span class="ornament"><MujiangStar variant={index%2===0?'outline':'long'} size={20}/></span>
+      <div><time datetime={post.data.pubDate.toISOString()}>{formatDate(post.data.pubDate)}</time><h3><a href={`/blog/${post.id}/`}>{post.data.title}</a></h3>{post.data.description && <p>{post.data.description}</p>}</div>
+      <a class="arrow" href={`/blog/${post.id}/`} aria-label={`阅读 ${post.data.title}`}>↗</a>
+    </article>)}
+  </div>
+  <p id="no-results" class="count" hidden>没有找到对应的文章。</p>
+  {posts.length===0 && <p class="muted">目前还没有文章，可以在 src/content/blog/ 中添加 Markdown。</p>}
+  <a class="back-link" href="/">← 返回首页</a>
+</main>
+<footer class="content-footer"><MujiangStar variant="long" size={15}/> 暮江 · {new Date().getFullYear()}</footer>
+<script>
+const input=document.querySelector<HTMLInputElement>('#post-search');
+const entries=[...document.querySelectorAll<HTMLElement>('.entry')];
+const count=document.querySelector<HTMLElement>('#match-count');
+const noResults=document.querySelector<HTMLElement>('#no-results');
+input?.addEventListener('input',()=>{const q=input.value.trim().toLocaleLowerCase();let n=0;for(const entry of entries){const match=(entry.dataset.search??'').includes(q);entry.hidden=!match;if(match)n++;}if(count)count.textContent=`找到 ${n} 篇文章`;if(noResults)noResults.hidden=n!==0||entries.length===0;});
+</script>
+</body></html>
+<style>
+.intro-row{display:flex;justify-content:space-between;align-items:baseline;gap:18px;flex-wrap:wrap}.intro-row p{margin:0 0 24px;font-size:.91rem;color:#847d91}.section-heading span{font-size:.82rem;color:#9672d5;margin-left:6px;font-weight:600}.search{display:flex;align-items:center;gap:12px;width:100%;max-width:620px;background:#fff;color:#9576c4;border:1px solid #e5d9f4;border-radius:12px;padding:14px 17px}.search:focus-within{outline:2px solid #ddcbf7}.search input{border:0;outline:0;background:transparent;font:inherit;color:#28243a;width:100%;min-width:0}.count{color:#857d91;font-size:.82rem;margin:19px 0 8px}.entry{border-bottom:1px solid #e9e3f0;display:grid;grid-template-columns:24px minmax(0,1fr) 34px;gap:14px;align-items:start;padding:25px 0}.entry:first-child{border-top:1px solid #e9e3f0}.entry[hidden],#no-results[hidden]{display:none!important}.ornament{padding-top:3px}.entry time{font-size:.84rem;color:#9273bf}.entry h3{margin:8px 0 9px;font-size:clamp(1.2rem,2.2vw,1.48rem);line-height:1.45}.entry h3 a:hover{color:#8262c9}.entry p{color:#777082;margin:0;line-height:1.75}.arrow{border:1px solid #e2d7f0;border-radius:50%;width:32px;height:32px;display:grid;place-items:center;color:#9472c9!important}.arrow:hover{background:#efe8fb}
+</style>

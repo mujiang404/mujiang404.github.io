@@ -1,0 +1,49 @@
+---
+import MujiangStar from './MujiangStar.astro';
+interface Props {
+  image: string;
+  eyebrow: string;
+  title: string;
+  subtitle: string;
+  active: 'blog' | 'shuoshuo';
+}
+const { image, eyebrow, title, subtitle, active } = Astro.props;
+---
+<section class="banner" style={`--banner-image: url("${image}")`} aria-label={`${title}页面封面`}>
+  <div class="banner-photo" aria-hidden="true"></div>
+  <header class="banner-topbar">
+    <nav class="banner-nav" aria-label="主导航">
+      <a href="/" class="banner-brand"><MujiangStar variant="long" size={28} /> <span>暮江<span class="dot">.</span></span></a>
+      <div class="banner-links">
+        <a href="/">首页</a>
+        <a href="/blog/" aria-current={active === 'blog' ? 'page' : undefined}>文章</a>
+        <a href="/shuoshuo/" aria-current={active === 'shuoshuo' ? 'page' : undefined}>说说</a>
+        <a href="/about/">关于我</a>
+      </div>
+    </nav>
+  </header>
+  <div class="banner-content">
+    <p class="banner-eyebrow"><MujiangStar variant="eight" size={18}/>{eyebrow}</p>
+    <h1>{title}<span class="dot">.</span></h1>
+    <p class="banner-subtitle">{subtitle}</p>
+    <a class="scroll-cue" href="#page-content">向下阅读 <span aria-hidden="true">↓</span></a>
+  </div>
+</section>
+<style>
+  .banner{min-height:86svh;position:relative;display:flex;flex-direction:column;isolation:isolate;overflow:hidden;background:#1b1933;color:white}
+  .banner-photo{position:absolute;inset:0;z-index:-1;background-image:linear-gradient(90deg,rgba(18,15,39,.78),rgba(25,18,52,.38) 65%,rgba(12,13,31,.24)),var(--banner-image);background-size:cover;background-position:center;transform:scale(1.005)}
+  .banner-topbar{width:100%;border-bottom:1px solid rgba(255,255,255,.18)}
+  .banner-nav{width:calc(100% - 80px);max-width:1480px;margin:auto;min-height:92px;display:flex;align-items:center;justify-content:space-between;gap:24px}
+  .banner-brand{display:inline-flex;align-items:center;gap:10px;font-weight:800;font-size:1.65rem;white-space:nowrap;color:#fff;text-decoration:none}
+  .dot{color:#b996f5}
+  .banner-links{display:flex;align-items:center;flex-wrap:wrap;gap:clamp(14px,3vw,38px)}
+  .banner-links a{color:#fff;text-decoration:none;font-size:1rem;opacity:.88}
+  .banner-links a:hover,.banner-links a[aria-current]{color:#d5bbff;opacity:1}
+  .banner-content{flex:1;width:calc(100% - 80px);max-width:1480px;margin:auto;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;padding:70px 0 90px}
+  .banner-eyebrow{display:flex;align-items:center;gap:12px;font-size:.82rem;font-weight:800;letter-spacing:.18em;color:#e8d8ff;margin:0 0 22px}
+  h1{font-size:clamp(4.3rem,11vw,9rem);line-height:1.1;letter-spacing:-.055em;margin:0 0 18px;font-weight:850;text-shadow:0 2px 22px rgba(0,0,0,.12)}
+  .banner-subtitle{font-size:clamp(1.08rem,2.3vw,1.45rem);line-height:1.9;max-width:660px;margin:0;color:#f2eefb}
+  .scroll-cue{display:inline-flex;align-items:center;gap:18px;margin-top:42px;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,.65);text-decoration:none;color:#fff;font-weight:700}
+  .scroll-cue span{font-size:1.4em}
+  @media(max-width:640px){.banner{min-height:76svh}.banner-nav{width:calc(100% - 36px);min-height:78px;flex-wrap:wrap;justify-content:center;gap:8px;padding-block:15px}.banner-links{gap:17px;justify-content:center}.banner-links a{font-size:.88rem}.banner-content{width:calc(100% - 40px);padding:50px 0 75px}.banner-eyebrow{font-size:.74rem}h1{font-size:clamp(3.8rem,16vw,5.5rem)}}
+</style>

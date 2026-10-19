@@ -1,0 +1,17 @@
+---
+import { SITE_TITLE } from '../consts';
+import InnerHero from '../components/InnerHero.astro';
+import MujiangStar from '../components/MujiangStar.astro';
+import { moments } from '../data/moments';
+import '../styles/inner-pages.css';
+const items = [...moments].sort((a,b)=>b.date.localeCompare(a.date));
+---
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><meta name="description" content="暮江的日常说说"/><link rel="icon" href="/favicon.svg" type="image/svg+xml"/><title>说说 · {SITE_TITLE}</title></head>
+<body class="inner-page"><InnerHero image="/shuoshuo-bg.jpg" title="说说" subtitle="================" active="shuoshuo" />
+<main class="page-main"><h2 class="section-heading">日常片段 <span class="count">{String(items.length).padStart(2,'0')}</span></h2>
+<div class="moments">{items.map((item,index)=><article class="moment"><div class="moment-star"><MujiangStar variant={index%2===0?'outline':'five'} size={22}/></div><div class="moment-card"><time datetime={item.date}>{item.date.replaceAll('-','.')}</time><p>{item.text}</p>{item.tags&&item.tags.length>0&&<div class="tags">{item.tags.map(tag=><span>#{tag}</span>)}</div>}</div></article>)}</div>
+{items.length===0&&<p class="muted">暂时没有说说，在 src/data/moments.ts 中添加第一条吧。</p>}
+<a class="back-link" href="/">← 返回首页</a></main><footer class="content-footer"><MujiangStar variant="long" size={15}/> 暮江 · {new Date().getFullYear()}</footer></body></html>
+<style>
+.count{font-size:.83rem;color:#987cc8;margin-left:7px}.moments{position:relative;padding-left:23px;border-left:1px solid #e1d5f2}.moment{position:relative;padding:0 0 23px 13px}.moment-star{position:absolute;left:-35px;top:14px;background:#faf9fc;line-height:0;padding:3px 0}.moment-card{border:1px solid #ece5f4;background:#fff;border-radius:13px;padding:23px 26px;box-shadow:0 4px 20px rgba(34,27,59,.025)}.moment-card time{font-size:.85rem;color:#8f70bf;font-weight:600}.moment-card p{font-size:1rem;line-height:1.9;white-space:pre-line;margin:12px 0 0}.tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}.tags span{background:#f3eefb;color:#8665bb;border-radius:20px;padding:5px 10px;font-size:.78rem}@media(max-width:620px){.moment-card{padding:18px}.moments{padding-left:17px}.moment{padding-left:10px}.moment-star{left:-28px}}
+</style>
