@@ -1,17 +1,58 @@
 ---
-import { SITE_TITLE } from '../consts';
+import { getCollection } from 'astro:content';
 import InnerHero from '../components/InnerHero.astro';
 import MujiangStar from '../components/MujiangStar.astro';
-import { moments } from '../data/moments';
 import '../styles/inner-pages.css';
-const items = [...moments].sort((a,b)=>b.date.localeCompare(a.date));
+
+const moments = (await getCollection('moments'))
+  .filter((item) => !item.data.draft)
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+const fmt = (d: Date) => new Intl.DateTimeFormat('zh-CN', {year:'numeric', month:'2-digit', day:'2-digit'}).format(d);
 ---
-<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><meta name="description" content="暮江的日常说说"/><link rel="icon" href="/favicon.svg" type="image/svg+xml"/><title>说说 · {SITE_TITLE}</title></head>
-<body class="inner-page"><InnerHero image="/shuoshuo-bg.jpg" title="说说" subtitle="================" active="shuoshuo" />
-<main class="page-main"><h2 class="section-heading">日常片段 <span class="count">{String(items.length).padStart(2,'0')}</span></h2>
-<div class="moments">{items.map((item,index)=><article class="moment"><div class="moment-star"><MujiangStar variant={index%2===0?'outline':'five'} size={22}/></div><div class="moment-card"><time datetime={item.date}>{item.date.replaceAll('-','.')}</time><p>{item.text}</p>{item.tags&&item.tags.length>0&&<div class="tags">{item.tags.map(tag=><span>#{tag}</span>)}</div>}</div></article>)}</div>
-{items.length===0&&<p class="muted">暂时没有说说，在 src/data/moments.ts 中添加第一条吧。</p>}
-<a class="back-link" href="/">← 返回首页</a></main><footer class="content-footer"><MujiangStar variant="long" size={15}/> 暮江 · {new Date().getFullYear()}</footer></body></html>
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="暮江的说说" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <title>说说 · 暮江</title>
+  </head>
+  <body class="inner-page">
+    <InnerHero
+        image="/shuoshuo-bg.jpg"
+        title="说说"
+        subtitle="================"
+        active="shuoshuo"
+    />
+    <main class="page-main moments-main">
+      <header class="moments-header"><h2>所有说说</h2><span>{String(moments.length).padStart(2,'0')}</span></header>
+      <div class="moments-timeline">
+        {moments.map((moment, i) => (
+          <article class="moment">
+            <span class="moment-star" aria-hidden="true"><MujiangStar variant={i % 2 ? 'outline' : 'long'} size={20}/></span>
+            <a class="moment-card" href={`/shuoshuo/${moment.id}/`}>
+              <time datetime={moment.data.pubDate.toISOString()}>{fmt(moment.data.pubDate)}</time>
+              {moment.data.title && <h3>{moment.data.title}</h3>}
+              <p>{moment.data.description}</p>
+              {moment.data.cover && <img class="moment-cover" src={moment.data.cover} alt={moment.data.title || '说说配图'} loading="lazy" />}
+              <div class="moment-bottom">
+                <span class="moment-tags">{moment.data.tags?.map((tag) => <span>#{tag}</span>)}</span>
+                <span class="read-more">查看详情 ↗</span>
+              </div>
+            </a>
+          </article>
+        ))}
+      </div>
+      {moments.length === 0 && <p class="empty">还没有说说。可以在 src/content/moments/ 新建 Markdown 文件。</p>}
+    </main>
+    <footer class="moments-footer"><MujiangStar variant="long" size={15} /> 暮江 · {new Date().getFullYear()}</footer>
+  </body>
+</html>
 <style>
-.count{font-size:.83rem;color:#987cc8;margin-left:7px}.moments{position:relative;padding-left:23px;border-left:1px solid #e1d5f2}.moment{position:relative;padding:0 0 23px 13px}.moment-star{position:absolute;left:-35px;top:14px;background:#faf9fc;line-height:0;padding:3px 0}.moment-card{border:1px solid #ece5f4;background:#fff;border-radius:13px;padding:23px 26px;box-shadow:0 4px 20px rgba(34,27,59,.025)}.moment-card time{font-size:.85rem;color:#8f70bf;font-weight:600}.moment-card p{font-size:1rem;line-height:1.9;white-space:pre-line;margin:12px 0 0}.tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}.tags span{background:#f3eefb;color:#8665bb;border-radius:20px;padding:5px 10px;font-size:.78rem}@media(max-width:620px){.moment-card{padding:18px}.moments{padding-left:17px}.moment{padding-left:10px}.moment-star{left:-28px}}
+  .moments-header{display:flex;align-items:baseline;gap:12px;margin-bottom:36px}.moments-header h2{font-size:1.5rem;color:#28243a;margin:0}.moments-header span{color:#9c79d1;font-size:.9rem}
+  .moments-timeline{border-left:1px solid #dfd3ef;margin-left:11px;padding-left:35px}.moment{position:relative;margin-bottom:25px}.moment-star{position:absolute;left:-49px;top:21px;background:#faf9fc;display:grid;place-items:center;color:#b996f5}
+  .moment-card{display:block;border-radius:19px;padding:30px 34px;background:#fff;border:1px solid #e9e0f2;box-shadow:0 8px 30px rgba(45,32,76,.04);text-decoration:none;color:#28243a;transition:transform .2s,border-color .2s}.moment-card:hover{transform:translateY(-2px);border-color:#c3a0fb}
+  .moment-card time{color:#9572c8;font-weight:600;font-size:.88rem}.moment-card h3{font-size:1.25rem;margin:15px 0 0}.moment-card p{line-height:1.85;margin:17px 0;color:#383247;white-space:pre-line}.moment-cover{width:100%;max-height:360px;object-fit:cover;display:block;margin-top:18px;border-radius:12px}.moment-bottom{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:16px;flex-wrap:wrap}.moment-tags{display:flex;gap:8px;flex-wrap:wrap}.moment-tags span{background:#f2ebfb;color:#8262c9;border-radius:999px;font-size:.76rem;padding:6px 11px}.read-more{color:#8262c9;font-size:.85rem}.empty{color:#847b91}.moments-footer{display:flex;align-items:center;justify-content:center;gap:8px;color:#9275bf;padding:40px 12px;font-size:.85rem}
+  @media(max-width:620px){.moments-timeline{padding-left:22px}.moment-star{left:-36px}.moment-card{padding:21px 20px}}
 </style>

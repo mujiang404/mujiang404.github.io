@@ -1,0 +1,40 @@
+---
+import { getCollection, render, type CollectionEntry } from 'astro:content';
+import InnerHero from '../../components/InnerHero.astro';
+import MujiangStar from '../../components/MujiangStar.astro';
+import '../../styles/inner-pages.css';
+
+export async function getStaticPaths() {
+  const moments = await getCollection('moments', ({ data }) => !data.draft);
+  return moments.map((moment) => ({ params: { id: moment.id }, props: { moment } }));
+}
+interface Props { moment: CollectionEntry<'moments'>; }
+const { moment } = Astro.props;
+const { Content } = await render(moment);
+const formattedDate = new Intl.DateTimeFormat('zh-CN', {year:'numeric',month:'long',day:'numeric'}).format(moment.data.pubDate);
+---
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={moment.data.description} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <title>{moment.data.title || '一条说说'} · 暮江</title>
+  </head>
+  <body class="inner-page">
+    <InnerHero image="/shuoshuo-bg.jpg" title="说说" active="shuoshuo" />
+    <main class="moment-reading">
+      <a class="return" href="/shuoshuo/">← 返回说说</a>
+      <time datetime={moment.data.pubDate.toISOString()}>{formattedDate}</time>
+      {moment.data.title && <h1>{moment.data.title}</h1>}
+      <article class="prose"><Content /></article>
+      {moment.data.tags && <div class="tags">{moment.data.tags.map((tag) => <span>#{tag}</span>)}</div>}
+      <div class="end-mark"><MujiangStar variant="long" size={20}/></div>
+    </main>
+  </body>
+</html>
+<style>
+  .moment-reading{max-width:850px;padding:76px 24px 120px;margin:0 auto;color:#28243a}.return{display:inline-block;color:#8262c9;text-decoration:none;margin-bottom:26px}.return:hover{text-decoration:underline}.moment-reading time{display:block;color:#9476bf;font-size:.9rem}.moment-reading h1{font-size:clamp(1.7rem,3.4vw,2.7rem);margin:14px 0 35px;line-height:1.35}.prose{font-size:1.06rem;line-height:1.95;overflow-wrap:anywhere}.prose :global(p){margin:0 0 1.45em}.prose :global(h2){font-size:1.5em;margin:2.1em 0 .7em}.prose :global(h3){font-size:1.2em;margin:1.7em 0 .7em}.prose :global(img){display:block;max-width:100%;height:auto;border-radius:14px;margin:1.7em auto}.prose :global(a){color:#8262c9}.prose :global(blockquote){border-left:3px solid #b996f5;margin:1.5em 0;padding:.1em 1.3em;color:#645c70;background:#f1eafb}.prose :global(pre){overflow-x:auto;padding:20px;border-radius:12px}.prose :global(code){overflow-wrap:anywhere}.tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:36px}.tags span{color:#8262c9;background:#f0e9fa;border-radius:99px;padding:6px 12px;font-size:.85rem}.end-mark{margin:60px auto 0;display:flex;justify-content:center;color:#b996f5}
+  @media(max-width:620px){.moment-reading{padding:46px 20px 80px}}
+</style>
